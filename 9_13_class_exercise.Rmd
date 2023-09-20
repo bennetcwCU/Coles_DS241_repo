@@ -30,13 +30,26 @@ file_combined = c(file2017, file2018, file2019, file2020, file2021, file2022, fi
 
 df_combined = read_csv(file_combined) %>% clean_names
 ```
-```{r}
-glimpse(df_combined)
-```
+
 
 ```{r}
 df1  = df_combined |> mutate(month_year = month+year*12)
 
 df1 |> ggplot(aes(month_year)) + geom_bar(aes(weight = passengers))
+```
+
+```{r}
+df3 <- df1 |> filter(dest == "MIA", origin == "LGA")
+```
+
+```{r}
+df4 <- df1 |> filter(dest == "LGA", origin == "MIA")
+
+```
+
+
+```{r}
+df3 |> ggplot(aes(month_year)) +
+  df4 |> ggplot(aes(month_year))
 ```
 
