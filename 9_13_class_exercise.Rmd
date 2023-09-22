@@ -39,17 +39,24 @@ df1 |> ggplot(aes(month_year)) + geom_bar(aes(weight = passengers))
 ```
 
 ```{r}
-df3 <- df1 |> filter(dest == "MIA", origin == "LGA")
-```
-
-```{r}
-df4 <- df1 |> filter(dest == "LGA", origin == "MIA")
-
+df2 <- df1 |> filter( (origin == "MIA" & dest == "LGA") | (origin == "LGA" & dest == "MIA") )
 ```
 
 
 ```{r}
-df3 |> ggplot(aes(month_year)) +
-  df4 |> ggplot(aes(month_year))
+df2 |> ggplot(aes(month_year)) + geom_bar(position = position_dodge(), aes(weight = passengers, fill = origin))
+```
+```{r}
+df3 <- df2 |> group_by(origin, month_year)|>
+  summarise(count = sum(passengers))|> mutate(cumulative_count = cumsum(count)) |>
+  pivot_wider(names_from = origin, values_from = c(count, cumulative_count))|> mutate(difference = count_LGA - count_MIA, cumulative_difference = cumulative_count_LGA - cumulative_count_MIA)
+```
+
+```{r}
+df3 |> ggplot(aes(x = month_year, y = difference)) +
+  geom_point()
+
+df3 |> ggplot(aes(x = month_year, y = cumulative_difference)) +
+  geom_line()
 ```
 
