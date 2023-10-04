@@ -1,0 +1,56 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(here)
+library(tidyverse)
+library(janitor)
+library(skimr)
+```
+
+
+```{r}
+file_enroll = here("data_raw", "CU_ACAD_DEPT_WHEN_OFF_ENRL.csv")
+
+df1 = read_csv(file_enroll) %>% clean_names
+
+```
+
+```{r}
+skim(df1)
+```
+
+```{r}
+df_calc = df1 |>
+  select(-acad_org,-title,-current_status,-course_id) |>
+  filter(subject=="MA",
+         catalog %in% c(125,131,132),
+         component=="LEC")
+
+glimpse(df_calc)
+```
+
+```{r}
+df_counts = df_calc |> group_by(catalog, term_7) |>
+  summarise(count = sum(tot_enrl)) |>
+  pivot_wider(names_from = catalog, values_from = count, names_prefix = "c_") |>
+  mutate_all(~replace_na(.,0)) |>
+  mutate(c_total = c_125 + c_131 + c_132) |>
+  arrange(desc(term_7)) |>
+  mutate(c_total_p = lead(c_total, default = 0) + (lead(c_total, 2, default = 0) * ((term_7 - 9) %% 10 == 0))) |>
+  mutate(predictor = c_132 / c_total_p)
+
+df_s = df_counts |> filter((term_7 - 2) %% 10 == 0, term_7 != 4242)
+
+predictor_avg = mean(df_s$predictor)
+
+df_s = df_s |> mutate(prediction = c_total_p * predictor_avg) |>
+  mutate(error = abs((prediction - c_132)/c_132)*100)
+
+error_avg = mean(df_s$error)
+
+s24 = 672 * predictor_avg
+```
+
