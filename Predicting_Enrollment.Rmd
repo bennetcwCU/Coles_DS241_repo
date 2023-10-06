@@ -54,3 +54,8 @@ error_avg = mean(df_s$error)
 s24 = 672 * predictor_avg
 ```
 
+```{r}
+df_s |> ggplot(aes(x = term_7)) + geom_point(aes(y = prediction, color = "red")) +
+  geom_point(aes(y = c_132, color = "blue"))
+```
+
